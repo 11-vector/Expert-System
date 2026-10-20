@@ -15,18 +15,11 @@ def load_agent():
 
 def run_chat(message, history):
     agent = load_agent()
-    result = agent(message, user_id)
-    if result['structured_response']:
-        response = result['structured_response']
-        answer = f"{response.speech}"\
-            f"Current Machine: {response.machine}\n" \
-            f"Suggestions: {response.suggestions}\n" \
-            f"Confidence: {response.confidence}\n"
-    else:
-        print(result)
-        answer = result['messages'][-1].content
-
-    return answer
+    result = agent(message, user_id, stream_token=True)
+    response_msg = ""
+    for output in result:
+        response_msg += output
+        yield response_msg
 
 
 app = gr.ChatInterface(

@@ -71,8 +71,8 @@ class ExpertAgent:
             )
         else:
             self.base_model = ChatOllama(
-                # model="qwen3:0.6b",
-                model="functiongemma:270m",
+                model="qwen3:0.6b",
+                # model="functiongemma:270m",
                 temperature=0,
                 # seed=10
             )
@@ -129,7 +129,7 @@ class ExpertAgent:
                 store=self.store
             )
 
-    def __call__(self, user_query: str, thread_id: str | None = None):
+    def __call__(self, user_query: str, thread_id: str | None = None, stream_token: bool = True):
         if self.agent is None:
             raise Exception("Agent not intialized")
 
@@ -138,7 +138,19 @@ class ExpertAgent:
 
         print(user_query)
 
-        result = self.agent.invoke(
+        # result = self.agent.invoke(
+        #     dict(
+        #         messages=[
+        #             HumanMessage(
+        #                 content=user_query
+        #             )
+        #         ]
+        #     ),
+        #     config=thread_config,
+        #     context=ExpertContext(user_id=thread_id),
+        # )
+
+        stream = self.agent.stream_events(
             dict(
                 messages=[
                     HumanMessage(
@@ -148,5 +160,12 @@ class ExpertAgent:
             ),
             config=thread_config,
             context=ExpertContext(user_id=thread_id),
+            version="v3",
         )
-        return result
+
+        for message in stream.messages:
+            if stream_token:
+                for delta in message.text:
+                    yield delta
+            else:
+                yield message.output
