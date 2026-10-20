@@ -1,8 +1,9 @@
+import os
 from machine_list import MACHINE_LISTNAME
 from retrevier import EdgeHybridSearch
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
-# from langchain_google_genai.llms import ChatGoogleGenerativeAI
+from langchain_google_genai.llms import ChatGoogleGenerativeAI
 from langchain_ollama import ChatOllama
 from langchain.messages import HumanMessage, SystemMessage
 from langchain.agents import create_agent, AgentState
@@ -64,18 +65,19 @@ class ExpertAgent:
         self.checkpointer = InMemorySaver()
 
         # Reasoning Model Initialization
-        self.base_model = ChatOllama(
-            # model="qwen3:0.6b",
-            model="functiongemma:270m",
-            temperature=0,
-            # seed=10
-        )
-
-        # self.base_model = ChatGoogleGenerativeAI(
-        #     model="gemini-3.8-flash",
-        # )
-
+        if os.getenv("USE_REMOTE_MODEL"):
+            self.base_model = ChatGoogleGenerativeAI(
+                model="gemini-3.8-flash",
+            )
+        else:
+            self.base_model = ChatOllama(
+                # model="qwen3:0.6b",
+                model="functiongemma:270m",
+                temperature=0,
+                # seed=10
+            )
         self.searcher = EdgeHybridSearch(shard_path)
+
         self.agent = None
 
     def get_tools(self):
