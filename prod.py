@@ -25,6 +25,8 @@ def main():
             continue
         result = agent(query, user_id)
         answer = result['structured_response']
+        if answer is None:
+            answer = result['messages'][-1].content
         print(f"(Agent)=> {answer}")
 
 
